@@ -1,13 +1,16 @@
+#   ==================   INSERTION SORT   ====================
+
 .data
-A: .word 9, 7, 6, 5, 4, 3, 2, 1, 0
-Aend: .word 
+        A: .word 9, 7, 6, 5, 4, 3, 2, 1, 0
+        Aend: .word 
+        Message: .asciiz  "Mang sau khi duoc sap xep: "
+        tab: .asciiz " "
 
 .text
 main:   la $a0, A           # $a0 = Address(A[0])
         la $a1, Aend        # $a1 = Address(A[n-1]) + 4 //dieu kien dung vong lap
         j sort              # sort
-after_sort:  li $v0, 10     # exit
-             syscall
+after_sort:  j   print_out  # in ra man hinh mang sau khi sắp xếp
 end_main:
 
 
@@ -41,3 +44,26 @@ end:            sw   $t5, 0($t3)
                 add  $v0, $v0, 4 
                 j    loop
 end_loop:
+
+print_out:
+        li $v0, 4
+        la $a0, Message
+        syscall
+        la $a0, A
+        la $a1, Aend
+        add $t0, $a0, 0
+print_el:                    # in ra tung phan tu trong mang
+        lw     $t1, 0($t0)   # lấy giá trị từ địa chỉ $t0  
+        li     $v0, 1        # Thực hiện in giá trị ra màn hình
+        move   $a0, $t1
+        syscall 
+        
+        li $v0, 4            # in dấu cách tab khoảng cách giữu các phần tử
+        la $a0, tab
+        syscall
+        
+        add  $t0, $t0, 4     # tiếp tục trỏ đến phần tử tiếp theo của mnagr
+        bne  $t0, $a1, print_el # kiểm tra xem có trỏ đến phần tử cuối cùng của mảng?
+        
+        li $v0, 10              # exit()
+        syscall                 # 
