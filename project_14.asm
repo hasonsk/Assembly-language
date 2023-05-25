@@ -1,8 +1,8 @@
 .data
     str_copy: .space 100
     fre:      .space 104
-    str1:     .asciiz "aabcdef"
-    str2:     .asciiz "acfaghe"
+    str1:     .asciiz "aabcde"
+    str2:     .asciiz "xyzaea"
     # ----------------- IN RA MAN HINH ------------------------- #
     Msg1:     .asciiz "commonCharacterCount(s1, s2) = "
     Msg2:     .asciiz ". String have " 
@@ -16,21 +16,21 @@ main:
     jal commonCharacterCount   # goi chuong trinh commonCharacterCount
     nop
     
-    move $a2, $v0              # luu ket qua tra ve vao a2           
+    move $a2, $v0           # luu ket qua tra ve vao a2     
+    add  $s4, $s4, $zero
     la  $s0, fre
-    li  $t0, 0       # i = 0
-    li  $s1, 1       # const = 1
+    li  $s1, 1              # const int ơne = 1
 print:
-    li $v0, 4                 # In ket qua len man hinh
-    la $a0, Msg1             # "The number of common characters is "
+    li $v0, 4               # In ket qua len man hinh
+    la $a0, Msg1            # "The number of common characters is "
     syscall      
     
     li  $v0, 1
     move $a0, $a2
     syscall
     # Msg2
-    li $v0, 4                 # In ket qua len man hinh
-    la $a0, Msg2              # ". String have " 
+    li $v0, 4               # In ket qua len man hinh
+    la $a0, Msg2            # ". String have " 
     syscall    
     
     li  $v0, 1
@@ -38,27 +38,29 @@ print:
     syscall
     
     # Msg3
-    li $v0, 4                 # In ket qua len man hinh
-    la $a0, Msg3              # " common charater"
+    li $v0, 4               # In ket qua len man hinh
+    la $a0, Msg3            # " common charater"
     syscall  
     
     slt $t8, $s1, $a2
-    beqz $t8, label
+    beqz $t8, print_dash
     li  $v0, 11
     li  $a0, 's'
     syscall
-    
-label:
-    li  $v0, 4               # in " - "
-    la  $a0, dash
-    syscall
+print_dash:  beqz $a2, end_loop
+             li  $v0, 4     # in " - "
+    	     la  $a0, dash
+    	     syscall
+    	     
+             li  $t0, 0     # i = 0
 loop:
     beq $t0, 26, end_loop
-    sll $t1, $t0, 2   # 4i
-    add $t2, $s0, $t1 # fre[i]
-    lw  $t3, 0($t2)
+    sll $t1, $t0, 2         # 4*i
+    add $t2, $s0, $t1 	     # dia chi cua fre[i]
+    lw  $t3, 0($t2)         # t3 = fre[i]
     beqz $t3, continue_loop
-    li  $v0, 1              # in fre[i]
+    
+    li  $v0, 1              # in gia tri fre[i]
     move $a0, $t3
     syscall
     
@@ -66,40 +68,36 @@ loop:
     li  $a0, ' '
     syscall
     
-    li  $v0, 11
-    li  $a0, '\"'           # in '\"'
+    li  $v0, 11             # in ky tu '\"'
+    li  $a0, '\"'          
     syscall
     
-    add $t4, $t0, 'a'   
-    li  $v0, 11             # in ky tu
+    add $t4, $t0, 'a'       # in ky tu chung cua 2 xau
+    li  $v0, 11             
     move $a0, $t4
     syscall
     
-    li  $v0, 11
-    li  $a0, '\"'           # in '\"'
+    li  $v0, 11             # in '\"'
+    li  $a0, '\"'           
     syscall
     
-    beq $t0, $s4, end_loop
-    beq $t3, $s1, print_and
-    # in s
-    li  $v0, 11
+    beq $t3, $s1, print_and  # fre[i] == 1
+    
+    li  $v0, 11              # in 's'
     li  $a0, 's'
     syscall
-print_and:
-    # in " and "
-    li  $v0, 4
-    la  $a0, and_msg
-    syscall
-continue_loop:
-    addi $t0, $t0, 1
-    j    loop
+print_and:  beq $t0, $s4, end_loop   # neu i = max_ASCII, --> phan tu cuoi cung can in 
+            li  $v0, 4       # in " and "
+            la  $a0, and_msg
+    	    syscall
+continue_loop:  addi $t0, $t0, 1
+                j    loop
 end_loop:
-    # in dot
-    li  $v0, 11
+    li  $v0, 11              # in '.'
     li  $a0, '.'
     syscall
     
-    li  $v0, 10                 # ket thuc chuong trinh
+    li  $v0, 10              # ket thuc chuong trinh
     syscall                 
 
 #-----------------------------------------------------------------
@@ -142,9 +140,9 @@ foundMatch:
     sub $t5, $t4, 'a'        # 
     slt $t8, $t5, $s4
     bnez $t8, next
-    move $s4, $t5
+    move $s4, $t5            # cap nhap gia tri cua max_ASCII
 next:
-    sll $t5, $t5, 2          # 
+    sll $t5, $t5, 2          # t5 = t5 * 2^2
     add $t5, $s3, $t5        # dia chi cua fre[str_cpy[j]-'a']
     lw  $t6, 0($t5)
     addi $t6, $t6, 1
@@ -171,9 +169,9 @@ exitOuterLoop:
 # @param[out] v0: chuoi sao chep tu str2
 #-----------------------------------------------------------------
 strcpy: 
-      li  $s0, 0                  # khoi tao s0 = i = 0
       la  $a1, str2               # a1: dia chi cua chuoi str2
       la  $a2, str_copy           # a2: dia chi cua chuoi str_copy
+      li  $s0, 0                  # khoi tao s0 = i = 0
 L1:
       add $t1, $a1, $s0           # t1 = str2[0] + i
                                   #    = dia chi cua str2[i]
